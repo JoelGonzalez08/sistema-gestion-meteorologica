@@ -1,0 +1,7 @@
+# Dependencias comunes
+pika
+psycopg2-binary
+
+# Dependencias para la API
+fastapi
+uvicorn[standard]

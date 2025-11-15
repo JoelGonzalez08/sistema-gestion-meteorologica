@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+    environment:
+      # Credenciales hardcodeadas
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    hostname: postgres
+    environment:
+      # Credenciales hardcodeadas
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: weatherdb
+    volumes:
+      - ../init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  producer:
+    build:
+      context: ..
+      dockerfile: producer/Dockerfile
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  consumer:
+    build:
+      context: ..
+      dockerfile: consumer/Dockerfile
+    depends_on:
+      - rabbitmq
+      - postgres
+    environment:
+      # Credenciales para la conexión del consumidor
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: weatherdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    restart: unless-stopped
+
+  # --- SERVICIOS NUEVOS ---
+
+  alert_consumer:
+    build:
+      context: ..
+      dockerfile: alert_consumer/Dockerfile
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  api_service:
+    build:
+      # Apunta al Dockerfile del servicio de API
+      context: ..
+      dockerfile: api_service/Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      # Expone el puerto de la API a tu máquina
+      - "8000:8000"
+    environment:
+      # Credenciales para la conexión de la API
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: weatherdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-oss:10.4.2
+    ports:
+      # Expone el puerto de Grafana a tu máquina
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  # --- FIN DE SERVICIOS NUEVOS ---
+
+  dev-environment:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
+  grafana_data: # Volumen para persistir la configuración de Grafana

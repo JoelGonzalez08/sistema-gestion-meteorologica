@@ -1,0 +1,14 @@
+FROM python:3.12-slim
+WORKDIR /app
+
+# 1. Copia el requirements.txt de la raíz
+COPY requirements.txt .
+
+# 2. Copia el script alert_consumer.py que está dentro de la carpeta alert_consumer/
+COPY alert_consumer/alert_consumer.py .
+
+# Instala las dependencias
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Comando para iniciar el consumidor de alertas
+CMD ["python", "-u", "alert_consumer.py"]
