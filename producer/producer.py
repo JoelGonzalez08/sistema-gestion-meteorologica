@@ -5,10 +5,14 @@ import random
 import os
 
 def connect_to_rabbitmq():
+    credentials = pika.PlainCredentials(
+        os.getenv('RABBITMQ_USER', 'user'),
+        os.getenv('RABBITMQ_PASS', 'password')
+    )
     while True:
         try:
             connection = pika.BlockingConnection(
-                pika.ConnectionParameters(host='rabbitmq', heartbeat=600, blocked_connection_timeout=300)
+                pika.ConnectionParameters(host=os.getenv('RABBITMQ_HOST', 'rabbitmq'), credentials=credentials, heartbeat=600, blocked_connection_timeout=300)
             )
             print("Conexión exitosa con RabbitMQ.")
             return connection

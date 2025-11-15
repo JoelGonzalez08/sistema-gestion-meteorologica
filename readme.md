@@ -132,8 +132,8 @@ Una vez que el sistema está corriendo, todos los servicios son accesibles desde
 
 -   **Dashboard de RabbitMQ:**
     -   **URL:** `http://localhost:15672`
-    -   **Usuario:** `guest`
-    -   **Contraseña:** `guest`
+    -   **Usuario:** `user`
+    -   **Contraseña:** `password`
 
 -   **API REST (con documentación interactiva):**
     -   **URL:** `http://localhost:8000/docs`

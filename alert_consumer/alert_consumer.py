@@ -1,6 +1,7 @@
 import pika
 import json
 import time
+import os
 
 # --- Umbrales de Alerta ---
 TEMP_THRESHOLD_HIGH = 35.0
@@ -33,7 +34,11 @@ def process_message(ch, method, properties, body):
 def main():
     while True:
         try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+            rabbit_host = os.getenv('RABBITMQ_HOST', 'rabbitmq')
+            rabbit_user = os.getenv('RABBITMQ_USER', 'guest')
+            rabbit_pass = os.getenv('RABBITMQ_PASS', 'guest')
+            credentials = pika.PlainCredentials(rabbit_user, rabbit_pass)
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbit_host, credentials=credentials))
             channel = connection.channel()
 
             # Aseguramos que el exchange exista

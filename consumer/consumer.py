@@ -60,7 +60,11 @@ def main():
     connection = None
     while True:
         try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq', heartbeat=600, blocked_connection_timeout=300))
+            rabbit_host = os.getenv('RABBITMQ_HOST', 'rabbitmq')
+            rabbit_user = os.getenv('RABBITMQ_USER', 'guest')
+            rabbit_pass = os.getenv('RABBITMQ_PASS', 'guest')
+            credentials = pika.PlainCredentials(rabbit_user, rabbit_pass)
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbit_host, credentials=credentials, heartbeat=600, blocked_connection_timeout=300))
             channel = connection.channel()
             channel.exchange_declare(exchange='weather_exchange', exchange_type='direct', durable=True)
             channel.queue_declare(queue='weather_queue', durable=True)

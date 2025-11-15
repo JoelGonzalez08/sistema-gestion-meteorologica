@@ -10,19 +10,19 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/
     environment:
-      # Credenciales hardcodeadas
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      # Credenciales (puedes sobrescribirlas en .devcontainer/.env o en tu entorno)
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-user}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-password}
     restart: unless-stopped
 
   postgres:
     image: postgres:16
     hostname: postgres
     environment:
-      # Credenciales hardcodeadas
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: weatherdb
+      # Credenciales (puedes sobrescribirlas en .devcontainer/.env o en tu entorno)
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-weatherdb}
     volumes:
       - ../init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
@@ -36,6 +36,11 @@ services:
       dockerfile: producer/Dockerfile
     depends_on:
       - rabbitmq
+    environment:
+      # Credenciales para la conexión del productor
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-${RABBITMQ_DEFAULT_USER:-user}}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-${RABBITMQ_DEFAULT_PASS:-password}}
     restart: unless-stopped
 
   consumer:
@@ -48,9 +53,12 @@ services:
     environment:
       # Credenciales para la conexión del consumidor
       POSTGRES_HOST: postgres
-      POSTGRES_DB: weatherdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB:-weatherdb}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-${RABBITMQ_DEFAULT_USER:-user}}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-${RABBITMQ_DEFAULT_PASS:-password}}
     restart: unless-stopped
 
   # --- SERVICIOS NUEVOS ---
@@ -61,6 +69,16 @@ services:
       dockerfile: alert_consumer/Dockerfile
     depends_on:
       - rabbitmq
+      - postgres
+    environment:
+      # Credenciales para la conexión del consumidor de alertas
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-weatherdb}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-${RABBITMQ_DEFAULT_USER:-user}}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-${RABBITMQ_DEFAULT_PASS:-password}}
     restart: unless-stopped
 
   api_service:
@@ -76,9 +94,9 @@ services:
     environment:
       # Credenciales para la conexión de la API
       POSTGRES_HOST: postgres
-      POSTGRES_DB: weatherdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB:-weatherdb}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     restart: unless-stopped
 
   grafana:
