@@ -49,6 +49,8 @@ flowchart TB
     AlertConsumer -- Emite Alerta en Log --> Salida["Salida"]
     PostgreSQL -- SELECT --> API & Grafana
 ```
+</details>
+
 ---
 
 ### Características Principales
@@ -177,5 +179,3 @@ Para verificar que todos los componentes del sistema funcionan correctamente, si
 6.  **Visualización:** Accede a Grafana, configura la conexión a PostgreSQL y crea un dashboard que muestre la temperatura a lo largo del tiempo. El gráfico debe actualizarse automáticamente.
 7.  **Escalabilidad:** Ejecuta `./scripts/scale.sh consumer 4`. Ve al dashboard de RabbitMQ y confirma en la sección de colas que `weather_queue` ahora tiene 4 consumidores activos.
 8.  **Persistencia de Datos:** Ejecuta `./scripts/stop.sh` y luego `./scripts/start.sh`. Confirma que los datos en PostgreSQL y los dashboards en Grafana siguen presentes.
-
-```
